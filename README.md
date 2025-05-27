@@ -4,6 +4,9 @@ BoomVault is a full-stack video platform prototype that allows creators to uploa
 
 ---
 
+![image](https://github.com/user-attachments/assets/9b0f9b63-6d83-4010-a4b7-34dcf99074d9)
+
+
 ## 🚀 Tech Stack
 
 - **Frontend:**  
