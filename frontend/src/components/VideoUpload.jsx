@@ -4,9 +4,11 @@ import { IoWallet } from "react-icons/io5";
 
 const VideoUpload = () => {
   const [videos, setVideos] = useState([]);
-  const [wallet, setWallet] = useState(500); // Default ₹500
+  const [wallet, setWallet] = useState(500); 
   const [purchasedVideos, setPurchasedVideos] = useState([]);
   const [visibleCount, setVisibleCount] = useState(3);
+  const [comments, setComments] = useState({});
+  const [newCommentText, setNewCommentText] = useState({});
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -24,6 +26,35 @@ const VideoUpload = () => {
 
     fetchVideos();
   }, []);
+
+  useEffect(() => {
+    const storedComments = localStorage.getItem("videoComments");
+    if (storedComments) {
+      setComments(JSON.parse(storedComments));
+    }
+  }, []);
+
+  const [username] = useState(localStorage.getItem("username"));//getting username from local storage
+
+  const handleCommentSubmit = (videoId) => {
+    const text = newCommentText[videoId]?.trim();
+    if (!text) return;
+
+    const newComment = {
+      username: username || "Anonymous",
+      text,
+      date: new Date().toISOString(),
+    };
+
+    const updatedComments = {
+      ...comments,
+      [videoId]: [newComment, ...(comments[videoId] || [])],
+    };
+
+    setComments(updatedComments);
+    setNewCommentText((prev) => ({ ...prev, [videoId]: "" }));
+    localStorage.setItem("videoComments", JSON.stringify(updatedComments));
+  };
 
   const handlePurchase = (videoId, price) => {
     if (wallet < price) {
@@ -44,19 +75,17 @@ const VideoUpload = () => {
 
   return (
     <>
-      {/* Component Visible only if logged in */}
       {authToken && (
         <div id="uploads" className="relative">
-          <div className="text-6xl opacity-50 uppercase font-bold flex justify-center my-5 pointer-events-none">uploaded videos</div>
-          {/* Wallet */}
+          <div className="text-6xl opacity-50 uppercase font-bold flex justify-center my-5 pointer-events-none">
+            uploaded videos
+          </div>
           <div
             title="Available Balance"
-            className="fixed top-2 left-2 bg-black/50 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex gap-1 font-bold items-center text-nowrap"
-          >
+            className="fixed top-2 left-2 bg-black/50 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex gap-1 font-bold items-center text-nowrap">
             <IoWallet /> ₹{wallet}
           </div>
 
-          {/* Unified Feed */}
           <div className="max-w-2xl mx-auto mt-10 rounded-2xl m-10 p-6 flex flex-col gap-10">
             {videos.slice(0, visibleCount).map((video) => (
               <div
@@ -68,7 +97,6 @@ const VideoUpload = () => {
                   {video.description}
                 </p>
 
-                {/* Short form video */}
                 {video.type === "short" && video.filePath && (
                   <video
                     src={`http://localhost:5000/uploads/${video.filePath.replace(
@@ -84,11 +112,12 @@ const VideoUpload = () => {
                   />
                 )}
 
-                {/* Long-Form Video */}
                 {video.type === "long" && video.url && (
                   <>
-                    {/* thumbnail */}
-                      <img className="rounded" src="https://i.ytimg.com/vi/eWnZVUXMq8k/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCKdhqYalqlZcdZ71co8VP2_zRtiQ"></img>
+                    <img
+                      className="rounded"
+                      src="https://i.ytimg.com/vi/eWnZVUXMq8k/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCKdhqYalqlZcdZ71co8VP2_zRtiQ"
+                    />
                     {video.price > 0 &&
                     !purchasedVideos.includes(video._id) ? (
                       <button
@@ -124,14 +153,55 @@ const VideoUpload = () => {
                     ? new Date(video.updatedAt).toLocaleString()
                     : "Unknown"}
                 </p>
+
+                {/* Comment Section */}
+                <div className="mt-4 border-t border-gray-600 pt-4">
+                  <h4 className="text-white font-semibold mb-2">Comments</h4>
+
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    {(comments[video._id] || []).map((c, i) => (
+                      <div
+                        key={i}
+                        className="bg-white/5 p-2 rounded text-sm text-white"
+                      >
+                        <p className="font-semibold">{c.username}</p>
+                        <p>{c.text}</p>
+                        <p className="text-gray-400 text-xs">
+                          {new Date(c.date).toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Write a comment..."
+                      value={newCommentText[video._id] || ""}
+                      onChange={(e) =>
+                        setNewCommentText((prev) => ({
+                          ...prev,
+                          [video._id]: e.target.value,
+                        }))
+                      }
+                      className="flex-1 px-3 py-2 rounded bg-white/10 text-white placeholder-gray-400 border border-gray-500"
+                    />
+                    <button
+                      onClick={() => handleCommentSubmit(video._id)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                    >
+                      Post
+                    </button>
+                  </div>
+                </div>
               </div>
             ))}
 
-            {/* Load More Button */}
             {visibleCount < videos.length && (
               <button
                 onClick={loadMore}
-                className="mx-auto bg-black/40 text-black font-bold px-4 py-2 rounded-full duration-200 shadow-md hover:bg-black/50">
+                className="mx-auto bg-black/40 text-black font-bold px-4 py-2 rounded-full duration-200 shadow-md hover:bg-black/50"
+              >
                 Load More
               </button>
             )}

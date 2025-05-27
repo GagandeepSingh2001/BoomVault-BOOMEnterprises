@@ -137,6 +137,9 @@ const handleUpload = async (e) => {
     const result = await res.json();
     if (res.ok) {
       toast.success(result.message); //upload success
+      setTimeout(() => {
+        toast.success("Reload to update changes...");
+      }, 2000);
     } else {
       toast.error(result.error || "Upload failed");
     }
