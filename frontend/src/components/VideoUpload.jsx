@@ -4,11 +4,17 @@ import { IoWallet } from "react-icons/io5";
 
 const VideoUpload = () => {
   const [videos, setVideos] = useState([]);
-  const [wallet, setWallet] = useState(500); 
+  const [wallet, setWallet] = useState(() => {
+    const stored = localStorage.getItem("walletBalance");
+    return stored ? parseInt(stored) : 500;
+  });
   const [purchasedVideos, setPurchasedVideos] = useState([]);
   const [visibleCount, setVisibleCount] = useState(3);
   const [comments, setComments] = useState({});
   const [newCommentText, setNewCommentText] = useState({});
+
+  const [username] = useState(localStorage.getItem("username"));
+  const [authToken] = useState(localStorage.getItem("authToken"));
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -34,7 +40,9 @@ const VideoUpload = () => {
     }
   }, []);
 
-  const [username] = useState(localStorage.getItem("username"));//getting username from local storage
+  useEffect(() => {
+    localStorage.setItem("walletBalance", wallet.toString());
+  }, [wallet]);
 
   const handleCommentSubmit = (videoId) => {
     const text = newCommentText[videoId]?.trim();
@@ -62,12 +70,13 @@ const VideoUpload = () => {
       return;
     }
 
-    setWallet((prev) => prev - price);
+    const newBalance = wallet - price;
+    setWallet(newBalance);
+    localStorage.setItem("walletBalance", newBalance.toString());
+
     setPurchasedVideos((prev) => [...prev, videoId]);
     toast.success("Yayy ! Purchase successful !");
   };
-
-  const [authToken] = useState(localStorage.getItem("authToken"));
 
   const loadMore = () => {
     setVisibleCount((prev) => prev + 3);
@@ -85,6 +94,12 @@ const VideoUpload = () => {
             className="fixed top-2 left-2 bg-black/50 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex gap-1 font-bold items-center text-nowrap">
             <IoWallet /> ₹{wallet}
           </div>
+          <button
+          onClick={() => {setWallet(500); toast.success("Wallet refilled to ₹500")}}
+            title="Available Balance"
+            className="fixed top-2 right-2 bg-black/50 text-white px-2 py-2 rounded-lg shadow-lg z-50 flex gap-1 font-bold items-center text-nowrap">
+            Refill Wallet
+          </button>
 
           <div className="max-w-2xl mx-auto mt-10 rounded-2xl m-10 p-6 flex flex-col gap-10">
             {videos.slice(0, visibleCount).map((video) => (
@@ -93,16 +108,11 @@ const VideoUpload = () => {
                 className="bg-black bg-opacity-70 text-white p-4 rounded-lg shadow-md"
               >
                 <h3 className="text-xl font-bold mb-2">{video.title}</h3>
-                <p className="text-sm text-gray-400 mb-2">
-                  {video.description}
-                </p>
+                <p className="text-sm text-gray-400 mb-2">{video.description}</p>
 
                 {video.type === "short" && video.filePath && (
                   <video
-                    src={`http://localhost:5000/uploads/${video.filePath.replace(
-                      /\\/g,
-                      "/"
-                    )}`}
+                    src={`http://localhost:5000/uploads/${video.filePath.replace(/\\/g, "/")}`}
                     controls
                     autoPlay
                     playsInline
@@ -118,12 +128,9 @@ const VideoUpload = () => {
                       className="rounded"
                       src="https://i.ytimg.com/vi/eWnZVUXMq8k/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCKdhqYalqlZcdZ71co8VP2_zRtiQ"
                     />
-                    {video.price > 0 &&
-                    !purchasedVideos.includes(video._id) ? (
+                    {video.price > 0 && !purchasedVideos.includes(video._id) ? (
                       <button
-                        onClick={() =>
-                          handlePurchase(video._id, video.price)
-                        }
+                        onClick={() => handlePurchase(video._id, video.price)}
                         className="mt-2 bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-400 font-semibold"
                       >
                         Purchase for ₹{video.price}
