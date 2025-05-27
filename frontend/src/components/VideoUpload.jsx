@@ -97,7 +97,7 @@ const VideoUpload = () => {
           <button
           onClick={() => {setWallet(500); toast.success("Wallet refilled to ₹500")}}
             title="Available Balance"
-            className="fixed top-2 right-2 bg-black/50 text-white px-2 py-2 rounded-lg shadow-lg z-50 flex gap-1 font-bold items-center text-nowrap">
+            className="fixed z-0 top-2 right-2 bg-black/50 text-white px-2 py-2 rounded-lg shadow-lg flex gap-1 font-bold items-center text-nowrap">
             Refill Wallet
           </button>
 
