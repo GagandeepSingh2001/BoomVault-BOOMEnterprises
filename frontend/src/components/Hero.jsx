@@ -56,10 +56,100 @@ const Hero = () => {
     }
   };
 
+  // video upload
+  const [formData, setFormData] = useState({
+      title: "",
+      description: "",
+      type: "short",
+      videoFile: null,
+      url: "",
+      price: 0
+    });
+  
+    // const handleChange = (e) => {
+    //   if (e.target.type === "file") {
+    //   setFormData(prev => ({ ...prev, [e.target.name]: e.target.files[0] }));
+    // } else {
+    //   setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    // }
+    // };
+  
+    // const handleUpload = async (e) => {
+    //   e.preventDefault();
+    //   const data = new FormData();
+  
+    //   data.append("title", formData.title);
+    //   data.append("description", formData.description);
+    //   data.append("type", formData.type);
+    //   data.append("creatorId", "6654c3e4c209b49b2f6a2345");
+  
+    //   if (formData.type === "short") {
+    //     data.append("videoFile", formData.videoFile);
+    //   } else {
+    //     data.append("url", formData.url);
+    //     data.append("price", formData.price);
+    //   }
+  
+    //   const res = await fetch("http://localhost:5000/api/videos/upload", {
+    //     method: "POST",
+    //     body: data
+    //   });
+  
+    //   const result = await res.json();
+    //   toast.success(result.message);
+    // };
+
+    const handleChange = (e) => {
+  const { name, value, type } = e.target;
+  if (type === "file") {
+    setFormData((prev) => ({ ...prev, [name]: e.target.files[0] }));
+  } else {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
+};
+
+const handleUpload = async (e) => {
+  e.preventDefault();
+  const data = new FormData();
+
+  data.append("title", formData.title);
+  data.append("description", formData.description);
+  data.append("type", formData.type);
+  data.append("creatorId", "6654c3e4c209b49b2f6a2345");
+
+  if (formData.type === "short") {
+    if (!formData.videoFile) {
+      toast.error("Please upload a video file");
+      return;
+    }
+    data.append("videoFile", formData.videoFile);
+  } else {
+    data.append("url", formData.url);
+    data.append("price", formData.price);
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/videos/upload", {
+      method: "POST",
+      body: data
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+      toast.success(result.message); //upload success
+    } else {
+      toast.error(result.error || "Upload failed");
+    }
+  } catch (err) {
+    toast.error("Error Uploading : " + err.message);
+  }
+};
+  
+
   return (
     <>
 
-    <div id='home' className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-blue-900 text-white flex flex-col items-center justify-center px-6 py-10 space-y-12">
+    <div id='home' className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-blue-900 text-white flex flex-col items-center justify-center px-6 py-10 space-y-12 rounded-b-2xl relative">
         <img src={bg} alt="Background" className="absolute inset-0 w-screen h-screen object-cover opacity-30 z-0" />
       <div className="text-center space-y-4 z-1 mt-5">
         <h1 className="text-5xl font-extrabold">
@@ -106,6 +196,7 @@ const Hero = () => {
           description="Upload your own videos and start earning from your content"
         />
       </div>
+      {loggedIn ? <></> :<div className='uppercase font-bold absolute bottom-5 text-xs'>uploaded videos will be displayed below (only after login)</div>}
     </div>
 
     {/* Signup form */}
@@ -233,14 +324,39 @@ const Hero = () => {
       {/* Upload Modal */}
       <Modal open={upload} onClose={() => setUpload(false)}>
         <div className='backdrop-blur rounded-lg p-5 overflow-auto place-items-center w-screen h-screen grid'>
-          <div className="bg-black bg-opacity-70 text-white rounded-xl shadow-xl w-full max-w-md p-8">
-            <h2 className="text-3xl font-bold text-center mb-2">Upload Video</h2>
-            <p className="text-center text-gray-300 mb-6">
-              Coming soon! Stay tuned for this feature.
-            </p>
-            <button onClick={() => setUpload(false)} className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-lg hover:bg-yellow-300 transition">
-              Close
-            </button>
+          <div className="max-w-lg mx-auto p-6 bg-black bg-opacity-70 text-white rounded-lg mt-10">
+            <h2 className="text-2xl font-bold mb-4">Upload Video</h2>
+            <form onSubmit={handleUpload} className="space-y-4">
+
+              <input name="title" value={formData.title} onChange={handleChange}
+                className="w-full p-2 bg-gray-900 border border-gray-700 rounded" placeholder="Video Title" required />
+
+              <textarea name="description" value={formData.description} onChange={handleChange}
+                className="w-full p-2 bg-gray-900 border border-gray-700 rounded" placeholder="Description" rows="3" required />
+
+              <select name="type" value={formData.type} onChange={handleChange}
+                className="w-full p-2 bg-gray-900 border border-gray-700 rounded">
+                <option value="short">Short-Form</option>
+                <option value="long">Long-Form</option>
+              </select>
+
+              {formData.type === "short" ? (
+                <input type="file" name="videoFile" accept=".mp4" onChange={handleChange}
+                  className="w-full text-sm text-gray-400 bg-gray-900 border border-gray-700 rounded" required />
+              ) : (
+                <>
+                  <input type="url" name="url" value={formData.url} onChange={handleChange}
+                    className="w-full p-2 bg-gray-900 border border-gray-700 rounded" placeholder="Video URL" required />
+                  <input type="number" name="price" value={formData.price} onChange={handleChange}
+                    className="w-full p-2 bg-gray-900 border border-gray-700 rounded" placeholder="Price (₹)" />
+                </>
+              )}
+
+              <button type="submit"
+                className="w-full bg-yellow-400 text-black font-semibold py-2 rounded hover:bg-yellow-300">
+                Upload
+              </button>
+            </form>
           </div>
         </div>
       </Modal>
