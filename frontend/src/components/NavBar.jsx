@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {NavLink} from "react-router-dom";
+import {Link} from "react-scroll";
 import { RxCross1 } from "react-icons/rx";
 import { IoMenu } from "react-icons/io5";
 import logo from '../assets/logo.png';
@@ -49,10 +49,15 @@ const NavBar = () => {
                 
                 <ul className="hidden lg:flex space-x-12">
 
-                    <a href="#home" className={(e)=>{return e.isActive ? "text-orange-400" : ""}}><li className="cursor-pointer hover:text-orange-400">Home</li></a>
-                    <a className={(e)=>{return e.isActive ? "text-orange-400" : ""}}><li className="cursor-pointer hover:text-orange-400">Features</li></a>
-                    <a className={(e)=>{return e.isActive ? "text-orange-400" : ""}}><li className="cursor-pointer hover:text-orange-400">About</li></a>
-                    <a className={(e)=>{return e.isActive ? "text-orange-400" : ""}}><li className="cursor-pointer hover:text-orange-400">Contact</li></a>
+                    <Link to="home" style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 1.5)' }} spy={true} smooth={true} duration={400} offset={0} activeClass="">
+                    <li className="cursor-pointer p-1 transition-all w-fit duration-300 text-neutral-300 hover:text-white hover:rounded-lg hover:translate-x-0.5 activetranslate-x-0">Home</li>
+                     </Link>
+                    {username && <Link to="uploads" style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 1.5)' }} spy={true} smooth={true} duration={400} offset={5} activeClass="">
+                    <li className="cursor-pointer p-1 transition-all w-fit duration-300 text-neutral-300 hover:text-white hover:rounded-lg hover:translate-x-0.5 activetranslate-x-0">Uploads</li>
+                    </Link>}
+                    <Link to="footer" style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 1.5)' }} spy={true} smooth={true} duration={400} offset={5} activeClass="">
+                    <li className="cursor-pointer p-1 transition-all w-fit duration-300 text-neutral-300 hover:text-white hover:rounded-lg hover:translate-x-0.5 activetranslate-x-0">Footer</li>
+                    </Link>
                     
                 </ul>
                 <div className="hidden lg:flex space-x-10 items-center">
